@@ -36,11 +36,11 @@ export default function Navbar() {
 
   return (
     <header className="sticky top-0 z-50 bg-white border-b border-blue-100 shadow-sm">
-      <nav className="max-w-7xl mx-auto px-4 sm:px-6 flex items-center justify-between h-16">
+      <nav className="max-w-screen-2xl mx-auto px-6 sm:px-10 flex items-center justify-between h-20">
         {/* Логотип */}
         <Link to="/" className="flex items-center gap-2 flex-shrink-0">
           <div className="relative">
-            <span className="text-xl font-bold text-blue-900 font-serif tracking-tight">
+            <span className="text-2xl font-bold text-blue-900 font-serif tracking-tight">
               Эрик Батуев
             </span>
             {/* Удмуртский орнамент-акцент */}
@@ -59,19 +59,19 @@ export default function Navbar() {
               {item.children ? (
                 <button
                   onClick={() => handleDropdown(item.label)}
-                  className={`flex items-center gap-1 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                  className={`flex items-center gap-1 px-4 py-2.5 rounded-md text-base font-semibold transition-colors ${
                     location.pathname.startsWith(item.path)
                       ? 'text-blue-700 bg-blue-50'
                       : 'text-slate-600 hover:text-blue-700 hover:bg-blue-50'
                   }`}
                 >
                   {item.label}
-                  <ChevronDown size={14} className={`transition-transform ${activeDropdown === item.label ? 'rotate-180' : ''}`} />
+                  <ChevronDown size={15} className={`transition-transform ${activeDropdown === item.label ? 'rotate-180' : ''}`} />
                 </button>
               ) : (
                 <Link
                   to={item.path}
-                  className={`block px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                  className={`block px-4 py-2.5 rounded-md text-base font-semibold transition-colors ${
                     location.pathname === item.path
                       ? 'text-blue-700 bg-blue-50'
                       : 'text-slate-600 hover:text-blue-700 hover:bg-blue-50'

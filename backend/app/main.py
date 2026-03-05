@@ -1,5 +1,7 @@
+import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from contextlib import asynccontextmanager
 from .core.config import settings
 from .core.database import engine, Base
@@ -8,6 +10,7 @@ from .routers.articles import router as articles_router
 from .routers.tests import router as tests_router
 from .routers.admin import router as admin_router
 from .routers.comments import router as comments_router
+from .routers.memories import router as memories_router
 
 
 @asynccontextmanager
@@ -41,6 +44,12 @@ app.include_router(articles_router, prefix=settings.api_prefix)
 app.include_router(tests_router, prefix=settings.api_prefix)
 app.include_router(admin_router, prefix=settings.api_prefix)
 app.include_router(comments_router, prefix=settings.api_prefix)
+app.include_router(memories_router, prefix=settings.api_prefix)
+
+# Статические файлы (загруженные пользователями)
+uploads_dir = os.path.join(os.path.dirname(__file__), "..", "uploads")
+os.makedirs(uploads_dir, exist_ok=True)
+app.mount("/uploads", StaticFiles(directory=uploads_dir), name="uploads")
 
 
 @app.get("/")

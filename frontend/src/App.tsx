@@ -18,6 +18,8 @@ function AppLayout() {
   return (
     <div className="flex flex-col min-h-screen">
       <Navbar />
+      {/* Удмуртский орнамент под навбаром */}
+      <div className="w-full h-16 flex-shrink-0" style={{ backgroundImage: 'url(/ornament.png)', backgroundRepeat: 'repeat-x', backgroundSize: 'auto 100%' }} />
       <main className="flex-1">
         <Routes>
           <Route path="/" element={<HomePage />} />
@@ -34,6 +36,8 @@ function AppLayout() {
           <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </main>
+      {/* Удмуртский орнамент над футером */}
+      <div className="w-full h-16 flex-shrink-0" style={{ backgroundImage: 'url(/ornament.png)', backgroundRepeat: 'repeat-x', backgroundSize: 'auto 100%' }} />
       <Footer />
       <LoginModal />
     </div>

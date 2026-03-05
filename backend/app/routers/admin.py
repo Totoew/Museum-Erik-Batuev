@@ -9,6 +9,7 @@ from ..core.security import decode_token, oauth2_scheme
 from ..models.user import User, UserRole
 from ..models.article import Article
 from ..models.comment import Comment
+from ..models.memory import Memory
 from ..schemas.article import ArticleCreate, ArticleUpdate, ArticleOut
 
 router = APIRouter(prefix="/admin", tags=["admin"])
@@ -230,4 +231,58 @@ async def admin_delete_comment(
     if not comment:
         raise HTTPException(status_code=404, detail="Комментарий не найден")
     await db.delete(comment)
+    await db.commit()
+
+
+# ─── Модерация воспоминаний ───────────────────────────────────────────────────
+
+@router.get("/memories")
+async def admin_list_memories(
+    db: AsyncSession = Depends(get_db),
+    _: User = Depends(require_admin),
+):
+    result = await db.execute(
+        select(Memory, User.name)
+        .join(User, Memory.user_id == User.id)
+        .order_by(Memory.is_approved.asc(), Memory.created_at.desc())
+    )
+    rows = result.all()
+    return [
+        {
+            "id": m.id,
+            "user_id": m.user_id,
+            "author_name": name,
+            "content": m.content,
+            "file_urls": m.file_urls or [],
+            "is_approved": m.is_approved,
+            "created_at": m.created_at.isoformat(),
+        }
+        for m, name in rows
+    ]
+
+
+@router.patch("/memories/{memory_id}/approve")
+async def admin_approve_memory(
+    memory_id: int,
+    db: AsyncSession = Depends(get_db),
+    _: User = Depends(require_admin),
+):
+    memory = await db.get(Memory, memory_id)
+    if not memory:
+        raise HTTPException(status_code=404, detail="Воспоминание не найдено")
+    memory.is_approved = not memory.is_approved
+    await db.commit()
+    return {"id": memory.id, "is_approved": memory.is_approved}
+
+
+@router.delete("/memories/{memory_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def admin_delete_memory(
+    memory_id: int,
+    db: AsyncSession = Depends(get_db),
+    _: User = Depends(require_admin),
+):
+    memory = await db.get(Memory, memory_id)
+    if not memory:
+        raise HTTPException(status_code=404, detail="Воспоминание не найдено")
+    await db.delete(memory)
     await db.commit()

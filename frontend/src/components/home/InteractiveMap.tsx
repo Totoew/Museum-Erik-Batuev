@@ -113,29 +113,23 @@ export default function InteractiveMap() {
 
         {/* Карта (десктоп) */}
         <div className="hidden md:block relative w-full max-w-3xl mx-auto">
-          <div className="relative rounded-2xl overflow-hidden border-2 border-blue-100 shadow-xl bg-gradient-to-br from-blue-50 to-slate-50">
-            {/* SVG карта */}
-            <svg viewBox="0 0 100 100" className="w-full" style={{ minHeight: 400 }}>
-              {/* Фон карты */}
+          <div className="relative rounded-2xl overflow-hidden border-2 border-blue-100 shadow-xl bg-blue-50" style={{ minHeight: 400 }}>
+            {/* Карта Удмуртии — фоновое изображение */}
+            <img
+              src="/udmurtia-map.jpg"
+              alt="Карта Удмуртии"
+              className="absolute inset-0 w-full h-full object-contain p-6"
+              style={{ filter: 'invert(1) sepia(1) saturate(3) hue-rotate(185deg) brightness(0.55) opacity(0.7)' }}
+            />
+
+            {/* SVG поверх карты — только точки и линии */}
+            <svg viewBox="0 0 100 100" className="w-full relative z-10" style={{ minHeight: 400 }}>
               <defs>
                 <pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse">
-                  <path d="M 10 0 L 0 0 0 10" fill="none" stroke="#dbeafe" strokeWidth="0.3" />
+                  <path d="M 10 0 L 0 0 0 10" fill="none" stroke="#dbeafe" strokeWidth="0.2" />
                 </pattern>
               </defs>
-              <rect width="100" height="100" fill="url(#grid)" />
-
-              {/* Силуэт Удмуртии */}
-              <path
-                d="M28,12 L36,8 L46,10 L52,14 L58,11 L62,16 L64,22 L61,28 L63,35 L60,42 L55,47 L53,54 L49,60 L43,64 L40,70 L36,73 L31,70 L27,65 L24,58 L21,50 L20,42 L22,35 L19,27 L21,20 L25,15 Z"
-                fill="#dbeafe"
-                stroke="#93c5fd"
-                strokeWidth="0.5"
-                opacity="0.8"
-              />
-
-              {/* Реки */}
-              <path d="M35,15 Q38,25 36,35 Q34,45 38,55" stroke="#93c5fd" strokeWidth="0.7" fill="none" opacity="0.6" />
-              <path d="M45,18 Q43,28 42,38 Q41,48 44,55" stroke="#93c5fd" strokeWidth="0.5" fill="none" opacity="0.5" />
+              <rect width="100" height="100" fill="url(#grid)" opacity="0.3" />
 
               {/* Соединительные линии между точками */}
               {mapPoints.map((point, i) =>
@@ -204,14 +198,17 @@ export default function InteractiveMap() {
                       onClick={() => navigate(point.path)}
                     />
 
-                    {/* Метка */}
+                    {/* Метка — белая подложка + текст */}
                     <text
                       x={point.x}
                       y={point.y + size + 3}
                       textAnchor="middle"
                       fontSize="3"
-                      fill={isHovered ? '#1e3a8a' : '#475569'}
-                      fontWeight={isHovered ? 'bold' : 'normal'}
+                      fill="white"
+                      stroke="#1e3a8a"
+                      strokeWidth="0.6"
+                      paintOrder="stroke"
+                      fontWeight="bold"
                       className="cursor-pointer select-none"
                       onMouseEnter={() => setHovered(point.id)}
                       onMouseLeave={() => setHovered(null)}

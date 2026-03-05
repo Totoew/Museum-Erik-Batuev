@@ -87,16 +87,16 @@ export default function HeroSection() {
               <div className="absolute -inset-4 rounded-3xl bg-gradient-to-br from-blue-100 to-blue-50 -rotate-3 opacity-60" />
               <div className="absolute -inset-2 rounded-3xl bg-gradient-to-br from-blue-200 to-transparent rotate-1 opacity-40" />
 
-              {/* Заглушка для портрета */}
-              <div className="relative w-72 h-96 sm:w-80 sm:h-[28rem] rounded-3xl overflow-hidden bg-gradient-to-b from-blue-100 to-blue-200 flex items-end justify-center border-4 border-white shadow-2xl">
-                {/* Силуэт */}
-                <svg viewBox="0 0 200 300" className="w-3/4 h-3/4 text-blue-300" fill="currentColor">
-                  <ellipse cx="100" cy="80" rx="45" ry="50" />
-                  <path d="M30 300 Q100 200 170 300" />
-                </svg>
-                <div className="absolute bottom-4 left-0 right-0 text-center">
-                  <p className="text-blue-500 text-sm font-medium">Портрет Эрика Батуева</p>
-                  <p className="text-blue-400 text-xs">Фото будет добавлено</p>
+              {/* Портрет Эрика Батуева */}
+              <div className="relative w-72 h-96 sm:w-80 sm:h-[28rem] rounded-3xl overflow-hidden border-4 border-white shadow-2xl">
+                <img
+                  src="/portrait.jpg"
+                  alt="Эрик Батуев"
+                  className="w-full h-full object-cover object-top"
+                />
+                <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-blue-900/70 to-transparent px-4 py-4">
+                  <p className="text-white text-sm font-medium font-serif">Эрик Батуев</p>
+                  <p className="text-blue-200 text-xs">1969 — 2002</p>
                 </div>
               </div>
 

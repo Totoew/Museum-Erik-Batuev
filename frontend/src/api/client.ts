@@ -67,6 +67,14 @@ export const api = {
   adminDeleteComment: (id: number) =>
     request<void>(`/admin/comments/${id}`, { method: 'DELETE' }),
 
+  adminGetMemories: () => request<AdminMemory[]>('/admin/memories'),
+
+  adminApproveMemory: (id: number) =>
+    request<{ id: number; is_approved: boolean }>(`/admin/memories/${id}/approve`, { method: 'PATCH' }),
+
+  adminDeleteMemory: (id: number) =>
+    request<void>(`/admin/memories/${id}`, { method: 'DELETE' }),
+
   // ── Comments ───────────────────────────────────────────────────────────────
   getComments: (articleId: number) =>
     request<Comment[]>(`/comments/${articleId}`),
@@ -76,6 +84,27 @@ export const api = {
       method: 'POST',
       body: JSON.stringify({ content }),
     }),
+
+  // ── Memories ──────────────────────────────────────────────────────────────
+  getMemories: () => request<Memory[]>('/memories'),
+
+  createMemory: (content: string, files: File[]) => {
+    const token = localStorage.getItem('token');
+    const formData = new FormData();
+    formData.append('content', content);
+    files.forEach((file) => formData.append('files', file));
+    return fetch(`${BASE}/memories`, {
+      method: 'POST',
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+      body: formData,
+    }).then(async (res) => {
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ detail: res.statusText }));
+        throw new Error(err.detail || 'Ошибка запроса');
+      }
+      return res.json() as Promise<Memory>;
+    });
+  },
 };
 
 // ── Типы ─────────────────────────────────────────────────────────────────────
@@ -147,5 +176,24 @@ export interface Comment {
   user_id: number;
   author_name: string;
   content: string;
+  created_at: string;
+}
+
+export interface Memory {
+  id: number;
+  user_id: number;
+  author_name: string;
+  content: string;
+  file_urls: string[];
+  created_at: string;
+}
+
+export interface AdminMemory {
+  id: number;
+  user_id: number;
+  author_name: string;
+  content: string;
+  file_urls: string[];
+  is_approved: boolean;
   created_at: string;
 }

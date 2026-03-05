@@ -1,14 +1,14 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  LayoutDashboard, FileText, Users, MessageCircle,
-  Plus, Pencil, Trash2, Eye, EyeOff, X, Save, ChevronRight,
+  LayoutDashboard, FileText, Users, MessageCircle, BookHeart,
+  Plus, Pencil, Trash2, Eye, EyeOff, X, Save, ChevronRight, Check,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../api/client';
-import type { Article, ArticleForm, AdminStats, AdminUser, AdminComment } from '../api/client';
+import type { Article, ArticleForm, AdminStats, AdminUser, AdminComment, AdminMemory } from '../api/client';
 
-type AdminTab = 'dashboard' | 'articles' | 'users' | 'comments';
+type AdminTab = 'dashboard' | 'articles' | 'users' | 'comments' | 'memories';
 
 const SECTIONS = [
   { value: 'biography', label: 'Биография' },
@@ -47,6 +47,7 @@ export default function AdminPage() {
             { id: 'articles' as const, label: 'Статьи', icon: FileText },
             { id: 'users' as const, label: 'Пользователи', icon: Users },
             { id: 'comments' as const, label: 'Комментарии', icon: MessageCircle },
+            { id: 'memories' as const, label: 'Воспоминания', icon: BookHeart },
           ].map(({ id, label, icon: Icon }) => (
             <button
               key={id}
@@ -74,6 +75,7 @@ export default function AdminPage() {
         {tab === 'articles' && <ArticlesTab />}
         {tab === 'users' && <UsersTab />}
         {tab === 'comments' && <CommentsTab />}
+        {tab === 'memories' && <MemoriesTab />}
       </main>
     </div>
   );
@@ -464,6 +466,158 @@ function UsersTab() {
             )}
           </tbody>
         </table>
+      </div>
+    </div>
+  );
+}
+
+// ─── Воспоминания ─────────────────────────────────────────────────────────────
+
+const BACKEND = 'http://localhost:8000';
+
+function MemoriesTab() {
+  const [memories, setMemories] = useState<AdminMemory[]>([]);
+  const [filter, setFilter] = useState<'all' | 'pending' | 'approved'>('pending');
+
+  const load = () => api.adminGetMemories().then(setMemories).catch(console.error);
+
+  useEffect(() => { load(); }, []);
+
+  const handleApprove = async (id: number) => {
+    await api.adminApproveMemory(id).catch(console.error);
+    load();
+  };
+
+  const handleDelete = async (id: number) => {
+    if (!confirm('Удалить воспоминание? Это действие нельзя отменить.')) return;
+    await api.adminDeleteMemory(id).catch(console.error);
+    setMemories(prev => prev.filter(m => m.id !== id));
+  };
+
+  const filtered = memories.filter(m => {
+    if (filter === 'pending') return !m.is_approved;
+    if (filter === 'approved') return m.is_approved;
+    return true;
+  });
+
+  const pendingCount = memories.filter(m => !m.is_approved).length;
+
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-6">
+        <h1 className="text-2xl font-serif font-bold text-slate-800">
+          Воспоминания
+          {pendingCount > 0 && (
+            <span className="ml-3 text-sm font-normal bg-amber-100 text-amber-700 px-2.5 py-0.5 rounded-full">
+              {pendingCount} на проверке
+            </span>
+          )}
+        </h1>
+      </div>
+
+      {/* Фильтр */}
+      <div className="flex gap-2 mb-5">
+        {([
+          { id: 'pending' as const, label: 'На проверке' },
+          { id: 'approved' as const, label: 'Одобренные' },
+          { id: 'all' as const, label: 'Все' },
+        ]).map(f => (
+          <button
+            key={f.id}
+            onClick={() => setFilter(f.id)}
+            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+              filter === f.id ? 'bg-blue-700 text-white' : 'bg-white border border-slate-200 text-slate-600 hover:border-blue-300'
+            }`}
+          >
+            {f.label}
+            {f.id === 'pending' && pendingCount > 0 && (
+              <span className="ml-1.5 bg-amber-500 text-white text-xs rounded-full px-1.5 py-0.5">{pendingCount}</span>
+            )}
+          </button>
+        ))}
+      </div>
+
+      <div className="space-y-4">
+        {filtered.map(m => (
+          <div
+            key={m.id}
+            className={`bg-white rounded-xl border shadow-sm p-5 ${
+              !m.is_approved ? 'border-amber-200 bg-amber-50/30' : 'border-slate-200'
+            }`}
+          >
+            <div className="flex items-start justify-between gap-4">
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 mb-2 flex-wrap">
+                  <span className="font-medium text-slate-800 text-sm">{m.author_name}</span>
+                  <span className="text-slate-300 text-xs">·</span>
+                  <span className="text-xs text-slate-400">
+                    {new Date(m.created_at).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' })}
+                  </span>
+                  <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+                    m.is_approved ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'
+                  }`}>
+                    {m.is_approved ? 'Одобрено' : 'На проверке'}
+                  </span>
+                </div>
+                <p className="text-sm text-slate-700 leading-relaxed whitespace-pre-wrap">{m.content}</p>
+
+                {m.file_urls.length > 0 && (
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {m.file_urls.map((url, i) => {
+                      const isImage = /\.(jpg|jpeg|png|gif)$/i.test(url);
+                      return isImage ? (
+                        <a key={i} href={`${BACKEND}${url}`} target="_blank" rel="noopener noreferrer">
+                          <img
+                            src={`${BACKEND}${url}`}
+                            alt=""
+                            className="w-20 h-20 object-cover rounded-lg border border-slate-200 hover:opacity-80 transition-opacity"
+                          />
+                        </a>
+                      ) : (
+                        <a
+                          key={i}
+                          href={`${BACKEND}${url}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 rounded-lg text-xs text-blue-700 hover:bg-blue-100 transition-colors"
+                        >
+                          {url.split('/').pop()}
+                        </a>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+
+              <div className="flex gap-1.5 flex-shrink-0">
+                <button
+                  onClick={() => handleApprove(m.id)}
+                  title={m.is_approved ? 'Снять с публикации' : 'Одобрить'}
+                  className={`p-2 rounded-lg transition-colors text-sm ${
+                    m.is_approved
+                      ? 'text-slate-400 hover:text-slate-600 hover:bg-slate-100'
+                      : 'text-green-600 hover:text-green-700 hover:bg-green-50'
+                  }`}
+                >
+                  <Check size={16} />
+                </button>
+                <button
+                  onClick={() => handleDelete(m.id)}
+                  className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                >
+                  <Trash2 size={15} />
+                </button>
+              </div>
+            </div>
+          </div>
+        ))}
+
+        {filtered.length === 0 && (
+          <div className="text-center py-16 text-slate-400">
+            <BookHeart size={32} className="mx-auto mb-3 opacity-40" />
+            <p>{filter === 'pending' ? 'Нет воспоминаний на проверке' : 'Воспоминаний не найдено'}</p>
+          </div>
+        )}
       </div>
     </div>
   );
