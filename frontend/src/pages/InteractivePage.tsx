@@ -51,7 +51,7 @@ const eventColors: Record<string, string> = {
   achievement: 'bg-amber-500',
 };
 
-const BACKEND = 'http://localhost:8000';
+const BACKEND = (import.meta.env.VITE_BACKEND_URL as string | undefined) ?? 'http://localhost:8000';
 
 function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' });

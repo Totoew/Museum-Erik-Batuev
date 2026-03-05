@@ -473,7 +473,7 @@ function UsersTab() {
 
 // ─── Воспоминания ─────────────────────────────────────────────────────────────
 
-const BACKEND = 'http://localhost:8000';
+const BACKEND = (import.meta.env.VITE_BACKEND_URL as string | undefined) ?? 'http://localhost:8000';
 
 function MemoriesTab() {
   const [memories, setMemories] = useState<AdminMemory[]>([]);
